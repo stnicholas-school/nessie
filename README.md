@@ -1,50 +1,113 @@
-# Nessie — Acessibilidade para Google Docs
+# Nessie
 
-Painel lateral para Google Docs que adapta textos para diferentes níveis de leitura e necessidades de apoio (TEA, TDAH, dislexia), com IA (Gemini) e ferramentas locais.
+**Adapt classroom texts for accessibility, inside Google Docs.**
 
-## Começar a usar
+Nessie is a Google Docs sidebar that lets a teacher take any passage and, in a few clicks, rewrite it at a simpler reading level, put it in literal language for students on the autism spectrum, apply layouts that help students with ADHD or dyslexia, turn a dense paragraph into a table, or have it read aloud.
 
-1. Faça uma cópia do documento modelo (**Arquivo → Fazer uma cópia**).
-2. Abra a cópia e use o menu **Nessie → Configurações**. Autorize o script na primeira vez.
-3. Cole sua chave gratuita da API Gemini, obtida em https://aistudio.google.com/apikey, e clique em **Salvar**.
-4. Abra **Nessie → Abrir painel**, selecione um trecho do texto e escolha uma adaptação.
+It was built by educators, runs on a free Google Gemini API key, and is free for schools to use and adapt.
 
-Os apoios tipográficos (pontuação, termos de comando, layout TDAH, estilo dislexia) e o leitor de áudio funcionam sem chave.
+[![Licence: CC BY-NC 4.0](https://img.shields.io/badge/Licence-CC%20BY--NC%204.0-blue.svg)](https://creativecommons.org/licenses/by-nc/4.0/)
+[![Platform: Google Apps Script](https://img.shields.io/badge/Platform-Google%20Apps%20Script-4285F4.svg)](https://www.google.com/script/start/)
 
-## Privacidade
+---
 
-- A chave é salva nas *UserProperties* da sua conta Google. Ela não é copiada junto com o documento e não fica visível para outros editores.
-- O texto selecionado é enviado à API Gemini apenas quando você usa uma adaptação com IA.
-- Permissões pedidas: editar **somente o documento atual**, exibir o painel e acessar serviços externos (API Gemini).
+## What it does
 
-## Personalização
-
-| Arquivo | O que controla |
+| Feature | What happens |
 |---|---|
-| `config.js` | Nome, cores, logo, créditos, modelo Gemini e limites |
-| `prompts.js` | Instruções enviadas à IA e presets tipográficos |
-| `commands.js` | Termos de comando e definições (pt, en, es) |
-| `i18n.js` | Textos da interface (pt, en, es) |
+| **A1 to C2** | Rewrites the passage at the chosen reading level, from the simplest (A1) to the most advanced (C2). |
+| **ASD support** | Removes metaphors and figurative language, and puts the ideas in a clear sequence. |
+| **Extend task** | Keeps the text and adds one higher-order question at the end. |
+| **Generate glossary** | Adds key terms with short definitions. Terms the task asks students to define are left out. |
+| **Extra instruction** | A free field to steer the AI, for example "use everyday examples". |
+| **Make it visual** | Reorganises the text into a table, a numbered sequence or a bulleted breakdown. |
+| **Highlight punctuation** | Marks punctuation in yellow and at a larger size. |
+| **Command terms** | Highlights command verbs (explain, compare, evaluate) and lists their definitions at the end of the document. |
+| **ADHD layout** | Verdana 12, wider line spacing, left alignment. |
+| **Dyslexia style** | Comic Sans MS 13, 1.5 line spacing, italics removed. |
+| **Audio reader** | Reads the selected passage aloud, with a choice of voice and speed. |
 
-O idioma padrão é português (`LOCALES.DEFAULT` em `config.js`). A resposta da IA sempre sai no idioma do texto selecionado.
+The original passage is struck through rather than deleted, so the teacher can compare both versions and keep what works. Ctrl+Z undoes everything.
 
-## Estrutura
+The interface is available in **Portuguese, English and Spanish**. The adaptation always comes back in the language of the selected text: an English passage stays English even when the sidebar is in Portuguese.
+
+## Getting started
+
+These instructions cover individual use, by one person in one document.
+
+1. **Make a copy** of the template document: File → Make a copy.
+2. In the copy, open **Nessie → Settings** and paste your Gemini API key. The key is free, from [Google AI Studio](https://aistudio.google.com/apikey). Click Test key, then Save.
+3. Select a passage, open **Nessie → Open sidebar** and choose an adaptation.
+
+Google asks for authorisation the first time. Nessie can only edit the document you have open.
+
+The typographic supports and the audio reader work without a key.
+
+### Deploying for a whole school
+
+To install Nessie as a Google Workspace add-on, with a single key held by the EdTech or IT team, see the deployment guide:
+
+- [Português](docs/DEPLOY_WORKSPACE_PT.md)
+- [English](docs/DEPLOY_WORKSPACE_EN.md)
+- [Español](docs/DEPLOY_WORKSPACE_ES.md)
+
+## Privacy
+
+- The API key is stored in your Google account's user properties. It is not copied with the document, and other editors of the same document cannot see it.
+- The selected passage is sent to the Google Gemini API only when you use an AI adaptation. Punctuation, command terms, ADHD layout, dyslexia style and the audio reader run locally and send nothing.
+- Nessie requests three permissions: edit **only the current document**, show the sidebar, and reach the Gemini API. Outgoing requests are restricted to `generativelanguage.googleapis.com` in the manifest, so the platform itself blocks anything else.
+- Nessie stores no student data of any kind.
+
+Adaptations are generated by AI and should always be reviewed before they reach students.
+
+## Customising a fork
+
+| File | What it controls |
+|---|---|
+| `config.js` | Name, colours, logo, credits, licence details, model settings and limits |
+| `prompts.js` | The instructions sent to the AI, and the typographic presets |
+| `commands.js` | Command terms and their definitions (pt, en, es) |
+| `i18n.js` | Every string in the interface (pt, en, es) |
+
+The default interface language is set by `LOCALES.DEFAULT` in `config.js`.
+
+The logo is an inline SVG in the sidebar header of `Index.html`. Set `LOGO_URL` in `config.js` to a public `https://` image to replace it.
+
+## Project structure
 
 ```
-appsscript.json  Manifesto (escopos mínimos)
-Code.js          Menu, painel e despachante das ações
-settings.js      Configurações por usuário (chave, idioma)
-gemini.js        Chamada à API, descoberta de modelos, detecção de idioma
-engine.js        Formatação local e inserção do resultado no documento
-config.js        Constantes do app
-prompts.js       Prompts da IA
-commands.js      Dicionário de termos de comando
-i18n.js          Traduções
-logging.js       Log padronizado
-Index.html       Painel lateral
-Settings.html    Diálogo de configurações
+appsscript.json  Manifest: minimum scopes, restricted outbound requests
+Code.js          Menu, sidebar and the action dispatcher
+settings.js      Per-user settings (API key, language)
+gemini.js        API calls, model discovery, language detection
+engine.js        Local formatting and writing results into the document
+config.js        App constants
+prompts.js       AI prompts
+commands.js      Command-term dictionary
+i18n.js          Translations
+logging.js       Standardised logging
+Index.html       Sidebar
+Settings.html    Settings dialog
 ```
 
-## Desenvolvimento com clasp
+## Development
 
-Crie seu próprio `.clasp.json` apontando para o seu `scriptId` (não versione esse arquivo) e rode `clasp push`.
+Create your own `.clasp.json` pointing at your `scriptId` (keep it out of version control) and run `clasp push`. Note that `clasp push` removes any file in the script project that is not present locally.
+
+Contributions are welcome: open an issue before a large change, so we can agree on the approach.
+
+## Licence
+
+Nessie is distributed under the [Creative Commons Attribution-NonCommercial 4.0 International](https://creativecommons.org/licenses/by-nc/4.0/) licence.
+
+You may use, copy, modify and redistribute Nessie free of charge for noncommercial purposes, including use by schools, teachers, universities, public bodies and nonprofit organisations. Reselling Nessie, charging for access to it, or building it into a paid product or service is not permitted.
+
+When using or adapting Nessie, keep the credit: **Nessie, created by St. Nicholas School**, with a link to this repository.
+
+"Nessie" and the St. Nicholas School name identify the original project. Modified versions must use a different name and make clear that they are not maintained by the school.
+
+For commercial use, contact [email].
+
+---
+
+Built by the EdTech team and teachers at St. Nicholas School, São Paulo, Brazil.
