@@ -1,0 +1,395 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+  <base target="_top">
+  <meta charset="utf-8">
+  <style>
+    :root {
+      --primary: <?=PRIMARY_COLOR ?>;
+      --bg: #f4f6f8;
+      --text: #2c3e50;
+      --muted: #6b7785;
+      --border: #d9dee3;
+      --danger: #c62828;
+      --success: #2e7d32;
+    }
+
+    html,
+    body {
+      margin: 0;
+      padding: 0;
+      font-family: 'Roboto', Arial, sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      font-size: 13px;
+    }
+
+    .wrap {
+      padding: 16px 20px;
+      box-sizing: border-box;
+    }
+
+    .field {
+      margin-bottom: 16px;
+    }
+
+    .field>label {
+      display: block;
+      font-size: 12px;
+      font-weight: 600;
+      margin-bottom: 6px;
+    }
+
+    .hint {
+      font-size: 11px;
+      color: var(--muted);
+      margin-top: 6px;
+      line-height: 1.45;
+    }
+
+    .hint a {
+      color: var(--primary);
+      font-weight: 600;
+    }
+
+    .key-status {
+      font-size: 11px;
+      color: var(--muted);
+      margin-bottom: 6px;
+    }
+
+    .form-control {
+      width: 100%;
+      padding: 9px 10px;
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      box-sizing: border-box;
+      font-family: inherit;
+      font-size: 13px;
+      background: #fff;
+    }
+
+    .input-row {
+      display: flex;
+      gap: 6px;
+    }
+
+    .input-row .form-control {
+      flex: 1;
+    }
+
+    .btn {
+      border: 1px solid var(--border);
+      background: #fff;
+      color: var(--text);
+      padding: 8px 14px;
+      border-radius: 6px;
+      font-family: inherit;
+      font-size: 12px;
+      font-weight: 600;
+      cursor: pointer;
+      white-space: nowrap;
+    }
+
+    .btn:hover:not(:disabled) {
+      border-color: var(--primary);
+    }
+
+    .btn:disabled {
+      opacity: 0.55;
+      cursor: progress;
+    }
+
+    .btn:focus-visible,
+    .form-control:focus-visible,
+    a:focus-visible {
+      outline: 2px solid var(--primary);
+      outline-offset: 1px;
+    }
+
+    .btn-primary {
+      background: var(--primary);
+      border-color: var(--primary);
+      color: #fff;
+    }
+
+    .btn-primary:hover:not(:disabled) {
+      filter: brightness(0.92);
+    }
+
+    .btn-link {
+      border: none;
+      background: none;
+      color: var(--danger);
+      padding: 8px 4px;
+    }
+
+    .btn-link:hover:not(:disabled) {
+      text-decoration: underline;
+    }
+
+    .msg {
+      font-size: 12px;
+      font-weight: 600;
+      padding: 8px 10px;
+      border-radius: 6px;
+      margin-top: 4px;
+      display: none;
+      line-height: 1.4;
+    }
+
+    .msg.ok {
+      background: #e8f5e9;
+      color: var(--success);
+      display: block;
+    }
+
+    .msg.err {
+      background: #ffebee;
+      color: var(--danger);
+      display: block;
+    }
+
+    .msg.info {
+      background: #e8f0fe;
+      color: var(--text);
+      display: block;
+    }
+
+    .actions {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 8px;
+      margin-top: 14px;
+      padding-top: 12px;
+      border-top: 1px solid var(--border);
+    }
+
+    .actions .group {
+      display: flex;
+      gap: 6px;
+      align-items: center;
+    }
+
+    .hidden-element {
+      display: none !important;
+    }
+  </style>
+</head>
+
+<body>
+  <div class="wrap">
+
+    <div class="field">
+      <label for="langSelect" id="t-lang-label"></label>
+      <select id="langSelect" class="form-control" onchange="onLanguageChange(this.value)">
+        <option value="pt">🇧🇷 Português (Brasil)</option>
+        <option value="en">🇬🇧 English</option>
+        <option value="es">🇪🇸 Español</option>
+      </select>
+    </div>
+
+    <div class="field">
+      <label for="inputApiKey" id="t-api-label"></label>
+      <div class="key-status" id="keyStatus"></div>
+      <div class="input-row">
+        <input type="password" id="inputApiKey" class="form-control" autocomplete="off" spellcheck="false">
+        <button class="btn" type="button" id="toggleKeyBtn" onclick="toggleKeyVisibility()"></button>
+      </div>
+      <div class="hint">
+        <span id="t-api-hint"></span>
+        <a id="apiKeyLink" href="#" target="_blank" rel="noopener noreferrer"></a>
+      </div>
+      <div class="hint" id="t-privacy-hint"></div>
+    </div>
+
+    <div id="settingsMsg" class="msg" role="status" aria-live="polite"></div>
+
+    <div class="actions">
+      <div class="group">
+        <button class="btn" type="button" id="testBtn" onclick="handleTest()"></button>
+        <button class="btn btn-link" type="button" id="removeBtn" onclick="handleRemove()"></button>
+      </div>
+      <div class="group">
+        <button class="btn" type="button" id="closeBtn" onclick="google.script.host.close()"></button>
+        <button class="btn btn-primary" type="button" id="saveBtn" onclick="handleSave()"></button>
+      </div>
+    </div>
+
+  </div>
+
+  <script>
+    var BOOT = <?!= BOOT_JSON ?>;
+    var _I18N = BOOT.i18n;
+    var _locale = BOOT.locale || BOOT.defaultLocale;
+    var _state = {
+      hasApiKey: BOOT.hasApiKey,
+      hasPersonalKey: BOOT.hasPersonalKey,
+      keySource: BOOT.keySource,
+      apiKeyMasked: BOOT.apiKeyMasked
+    };
+    var _keyVisible = false;
+    var _removeArmed = false;
+
+    function _t(key, params) {
+      var entry = _I18N[key];
+      var text = entry ? (entry[_locale] || entry[BOOT.defaultLocale] || key) : key;
+      if (params) {
+        Object.keys(params).forEach(function (name) {
+          text = text.split('{' + name + '}').join(String(params[name]));
+        });
+      }
+      return text;
+    }
+
+    function setText(id, key) { document.getElementById(id).textContent = _t(key); }
+
+    function applyTranslations() {
+      document.documentElement.lang = _locale === 'pt' ? 'pt-BR' : _locale;
+      setText('t-lang-label', 'LANG_LABEL');
+      setText('t-api-label', 'SETTINGS_API_LABEL');
+      setText('t-api-hint', 'SETTINGS_API_HINT');
+      setText('t-privacy-hint', 'SETTINGS_PRIVACY_HINT');
+      setText('testBtn', 'BTN_TEST_KEY');
+      setText('closeBtn', 'BTN_CANCEL');
+      setText('saveBtn', 'BTN_SAVE_SETTINGS');
+      setText('removeBtn', _removeArmed ? 'BTN_REMOVE_CONFIRM' : 'BTN_REMOVE_KEY');
+      setText('toggleKeyBtn', _keyVisible ? 'BTN_HIDE' : 'BTN_SHOW');
+
+      var link = document.getElementById('apiKeyLink');
+      link.textContent = _t('SETTINGS_API_LINK');
+      link.href = BOOT.apiKeyUrl;
+
+      document.getElementById('inputApiKey').placeholder = _t('SETTINGS_API_PLACEHOLDER');
+      document.getElementById('langSelect').value = _locale;
+      renderKeyState();
+    }
+
+        function renderKeyState() {
+      var status = document.getElementById('keyStatus');
+      if (_state.hasPersonalKey) {
+        status.textContent = _t('SETTINGS_KEY_SAVED_AS', { masked: _state.apiKeyMasked });
+      } else if (_state.keySource === 'shared') {
+        status.textContent = _t('SETTINGS_KEY_SHARED');
+      } else {
+        status.textContent = _t('SETTINGS_KEY_NONE');
+      }
+      document.getElementById('removeBtn').classList.toggle('hidden-element', !_state.hasPersonalKey);
+    }
+
+    function onLanguageChange(locale) {
+      _locale = locale;
+      applyTranslations();
+    }
+
+    function toggleKeyVisibility() {
+      _keyVisible = !_keyVisible;
+      document.getElementById('inputApiKey').type = _keyVisible ? 'text' : 'password';
+      setText('toggleKeyBtn', _keyVisible ? 'BTN_HIDE' : 'BTN_SHOW');
+    }
+
+    function setMsg(text, kind) {
+      var msg = document.getElementById('settingsMsg');
+      msg.textContent = text;
+      msg.className = 'msg ' + (kind || '');
+    }
+
+    function parseServerError(err) {
+      var raw = (err && err.message) ? err.message : String(err);
+      var match = raw.match(/\[([A-Z_]+)\]\s*/);
+      return match ? raw.slice(match.index + match[0].length) : raw.replace(/^(Exception|Error):\s*/i, '');
+    }
+
+    function setBusy(busy) {
+      ['testBtn', 'removeBtn', 'saveBtn'].forEach(function (id) { document.getElementById(id).disabled = busy; });
+    }
+
+    function applyServerState(settings) {
+      if (!settings) return;
+      _state.hasApiKey = settings.hasApiKey;
+      _state.hasPersonalKey = settings.hasPersonalKey;
+      _state.keySource = settings.keySource;
+      _state.apiKeyMasked = settings.apiKeyMasked;
+      renderKeyState();
+    }
+
+    function handleSave() {
+      var apiKey = document.getElementById('inputApiKey').value.trim();
+      var locale = document.getElementById('langSelect').value;
+
+      setBusy(true);
+      setMsg('', '');
+
+      google.script.run
+        .withSuccessHandler(function (settings) {
+          setBusy(false);
+          applyServerState(settings);
+          document.getElementById('inputApiKey').value = '';
+          setMsg(_t('SETTINGS_SAVED'), 'ok');
+          if (settings && settings.hasApiKey) {
+            setTimeout(function () { google.script.host.close(); }, 1000);
+          }
+        })
+        .withFailureHandler(function (err) {
+          setBusy(false);
+          setMsg(_t('SETTINGS_ERROR') + ' ' + parseServerError(err), 'err');
+        })
+        .saveSettings({ apiKey: apiKey, locale: locale });
+    }
+
+    function handleTest() {
+      var apiKey = document.getElementById('inputApiKey').value.trim();
+      setBusy(true);
+      setMsg(_t('SETTINGS_TESTING'), 'info');
+
+      google.script.run
+        .withSuccessHandler(function (result) {
+          setBusy(false);
+          setMsg(result.message, result.ok ? 'ok' : 'err');
+        })
+        .withFailureHandler(function (err) {
+          setBusy(false);
+          setMsg(parseServerError(err), 'err');
+        })
+        .testApiKey(apiKey);
+    }
+
+    function handleRemove() {
+      if (!_removeArmed) {
+        _removeArmed = true;
+        setText('removeBtn', 'BTN_REMOVE_CONFIRM');
+        setTimeout(function () {
+          _removeArmed = false;
+          setText('removeBtn', 'BTN_REMOVE_KEY');
+        }, 4000);
+        return;
+      }
+
+      _removeArmed = false;
+      setBusy(true);
+      google.script.run
+        .withSuccessHandler(function (settings) {
+          setBusy(false);
+          applyServerState(settings);
+          setText('removeBtn', 'BTN_REMOVE_KEY');
+          setMsg(_t('SETTINGS_KEY_REMOVED'), 'ok');
+        })
+        .withFailureHandler(function (err) {
+          setBusy(false);
+          setMsg(parseServerError(err), 'err');
+        })
+        .clearApiKey();
+    }
+
+    document.getElementById('inputApiKey').addEventListener('keydown', function (e) {
+      if (e.key === 'Enter') handleSave();
+    });
+
+    applyTranslations();
+    document.getElementById('inputApiKey').focus();
+  </script>
+</body>
+
+</html>
