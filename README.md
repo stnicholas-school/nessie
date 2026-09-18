@@ -47,9 +47,9 @@ The typographic supports and the audio reader work without a key.
 
 To install Nessie as a Google Workspace add-on, with a single key held by the EdTech or IT team, see the deployment guide:
 
-- [Português](docs/DEPLOY_WORKSPACE_PT.md)
-- [English](docs/DEPLOY_WORKSPACE_EN.md)
-- [Español](docs/DEPLOY_WORKSPACE_ES.md)
+- [Português](DEPLOY_WORKSPACE_PT.md)
+- [English](DEPLOY_WORKSPACE_EN.md)
+- [Español](DEPLOY_WORKSPACE_ES.md)
 
 ## Privacy
 
