@@ -35,7 +35,7 @@ The interface is available in **Portuguese, English and Spanish**. The adaptatio
 
 These instructions cover individual use, by one person in one document.
 
-1. **Make a copy** of the template document: File → Make a copy.
+1. **Make a copy** of the - [TEMPLATE DOCUMENT](https://docs.google.com/document/d/1VOH9OnPYlBo2CQSamFZMqAoJT2TwGtrVWk_-0feGBa4/copy): File → Make a copy.
 2. In the copy, open **Nessie → Settings** and paste your Gemini API key. The key is free, from [Google AI Studio](https://aistudio.google.com/apikey). Click Test key, then Save.
 3. Select a passage, open **Nessie → Open sidebar** and choose an adaptation.
 
